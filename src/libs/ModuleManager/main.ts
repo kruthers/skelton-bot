@@ -352,7 +352,7 @@ export class ModuleManager {
     await this.interactionManager.refreshCommandCache(clearOldCommands)
 
     Logger.info("Register listener")
-    this.client.on("interactionCreate", this.interactionManager.onInteraction)
+    this.client.on("interactionCreate", (interaction) => { this.interactionManager.onInteraction(interaction) })
 
     Logger.info("Reload completed".green)
   }
