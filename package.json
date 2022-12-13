@@ -1,0 +1,39 @@
+{
+  "name": "bot",
+  "version": "1.0.0",
+  "description": "A template bot",
+  "main": "main.js",
+  "scripts": {
+    "test": "tsc && node test/main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kruthers/template-bot.git"
+  },
+  "author": "kruthers",
+  "contributors": [
+    {
+      "name": "kruthers",
+      "url": "https://www.kruthers.com"
+    }
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kruthers/template-bot/issues"
+  },
+  "homepage": "https://github.com/kruthers/template-bot/#readme",
+  "devDependencies": {
+    "@types/node": "^17.0.33",
+    "@typescript-eslint/eslint-plugin": "^5.23.0",
+    "@typescript-eslint/parser": "^5.23.0",
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "typescript": "^4.6.4"
+  },
+  "dependencies": {
+    "colors": "^1.4.0",
+    "discord.js": "^14.3.0",
+    "winston": "^3.7.2",
+    "winston-daily-rotate-file": "^4.6.1"
+  }
+}
