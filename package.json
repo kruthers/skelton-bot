@@ -1,14 +1,15 @@
 {
-  "name": "bot",
-  "version": "1.0.0",
-  "description": "A template bot",
+  "name": "skelton-bot",
+  "version": "1.2.0",
+  "description": "A simple bot library with advanced capabilities",
+
   "main": "main.js",
   "scripts": {
-    "test": "tsc && node test/main.js"
+    "test": "tsc && node test/example.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kruthers/template-bot.git"
+    "url": "git+https://github.com/kruthers/skelton-bot.git"
   },
   "author": "kruthers",
   "contributors": [
@@ -19,9 +20,9 @@
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/kruthers/template-bot/issues"
+    "url": "https://github.com/kruthers/skelton-bot/issues"
   },
-  "homepage": "https://github.com/kruthers/template-bot/#readme",
+  "homepage": "https://github.com/kruthers/skelton-bot/#readme",
   "devDependencies": {
     "@types/node": "^17.0.33",
     "@typescript-eslint/eslint-plugin": "^5.23.0",

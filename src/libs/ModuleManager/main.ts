@@ -1,4 +1,4 @@
-import { APIEmbed, ApplicationCommandOptionType, ApplicationCommandType, Client, codeBlock, EmbedBuilder, EmbedField, Message } from "discord.js"
+import { APIEmbed, ApplicationCommandOptionType, ApplicationCommandType, codeBlock, EmbedBuilder, EmbedField, Events, Message } from "discord.js"
 import { existsSync, readdirSync } from "fs"
 import { join } from "path"
 import ModuleBase, { BotCommand } from "./types/Module"
@@ -6,13 +6,15 @@ import Config from "../Config"
 import { Logger } from "../logger"
 import { StringIteratorToSting, StringSetToSting } from "../StringUtils"
 import InteractionManager from "./InteractionManager"
-import { ModuleLoadFail } from "./Errors"
+import { InvalidModuleIDException, ModuleFetchException, ModuleLoadFail, NotAModuleException } from "./Errors"
+import Client from "../../main"
+import { mkdir } from "fs/promises"
 
 
-export class ModuleManager {
+export default class ModuleManager {
 
   //All enabled modules
-  private enabledModules: Map<string, ModuleBase[]> = new Map
+  private enabledModules: Map<string, ModuleBase> = new Map
 
   //List of all module ids
   public modules: Set<string> = new Set()
@@ -20,7 +22,7 @@ export class ModuleManager {
   //command manager
   public readonly interactionManager: InteractionManager
 
-  private readonly PATH = join(__dirname, "../../modules/")
+  private readonly PATH
 
   private client: Client
 
@@ -40,9 +42,10 @@ export class ModuleManager {
   )
 
 
-  constructor(client: Client) {
+  constructor(client: Client, path: string) {
     this.client = client
     this.interactionManager = new InteractionManager(client)
+    this.PATH = path
   }
 
 
@@ -53,6 +56,11 @@ export class ModuleManager {
     if (this.modules.size !== 0) {
       Logger.warn("Warning tried to re-initialize an already initialized module manager, aborting initialization")
       return false
+    }
+
+    if (!existsSync(this.PATH)) {
+      Logger.warn("No module folder found, creating new one")
+      await mkdir(this.PATH)
     }
 
     await this.reload().catch(error => {
@@ -80,10 +88,7 @@ export class ModuleManager {
       throw new ModuleLoadFail(id, "Unable to enable: Module is already enabled")
     }
 
-    const modules = await this.fetchModule(id)
-    if (modules.length === 0) {
-      throw new ModuleLoadFail(id, "Unable to enable: No modules provided")
-    }
+    const module = await this.fetchModule(id)
 
     if (this.config.data.disabled.includes(id)) {
       this.config.data.disabled = this.config.data.disabled.filter(disabled => disabled !== id)
@@ -91,7 +96,7 @@ export class ModuleManager {
     }
 
     //load modules
-    await this.load(id, modules)
+    await this.load(id, module)
 
   }
 
@@ -114,15 +119,13 @@ export class ModuleManager {
 
     //disable children modules
     for (const info of this.enabledModules) {
-      for (const module of info[1]) {
-        if (module.depend_on?.includes(id)) {
-          if (calledBy.includes(info[0])) {
-            Logger.warn(`Circular dependency detected, modules ${info[0]} and ${id}`)
-            break
-          } else {
-            await this.disable(info[0], [ ...calledBy, id ])
-            break
-          }
+      if (info[1].depend_on?.includes(id)) {
+        if (calledBy.includes(info[0])) {
+          Logger.warn(`Circular dependency detected, modules ${info[0]} and ${id}`)
+          break
+        } else {
+          await this.disable(info[0], [ ...calledBy, id ])
+          break
         }
       }
     }
@@ -189,11 +192,15 @@ export class ModuleManager {
     //Get all the modules
     const modulesIds = readdirSync(this.PATH)
     if (modulesIds.length === 0) {
-      throw new Error("No modules found in modules folder")
+      Logger.warn("No modules found in modules folder. It is highly recommended to load them via the folder".yellow)
     }
 
     Logger.info("Clearing Listener")
+    const reloads = this.client.listeners("reload")
     this.client.removeAllListeners()
+    reloads.forEach((handler) => {
+      this.client.on("reload", () => handler())
+    })
 
     Logger.info("Unloaded all modules, fetching all modules.")
 
@@ -204,27 +211,23 @@ export class ModuleManager {
       if (this.validateID(id)) {
         Logger.debug(`Fetching module '${id}'`)
         //gets the modules from the folder
-        const modules = await this.fetchModule(id)
-        //check it has modules
-        if (modules.length > 0) {
+        try {
+          const module = await this.fetchModule(id)
+
           //get all parents for the modules
           const parents: Set<string> = new Set()
-          modules.forEach(module => {
-            if (module.depend_on) {
-              module.depend_on.forEach(parent => { parents.add(parent) })
-            }
-          })
+          module.depend_on?.forEach(parent => { parents.add(parent) })
 
           //save the information for the module
           const data: moduleInfo = {
             id: id,
-            modules: modules,
+            module: module,
             parents: parents,
           }
           modulesInfo.push(data)
           Logger.debug(`Registered module with id: ${id}`)
-        } else {
-          Logger.warn(`Unable to fetch module ${id}, no modules found in file`)
+        } catch (error) {
+          Logger.warn(`Unable to fetch module ${id}: ${error}`)
         }
       } else {
         Logger.warn(`Unable to fetch module "${id}", invalid id. ID must only contain letters, numbers, and underscores`)
@@ -254,7 +257,7 @@ export class ModuleManager {
 
     //load the default module
     Logger.debug("Loading default module first")
-    await this.load("default", [ new DefaultModule(this) ])
+    await this.load("default", new DefaultModule(this))
 
     Logger.debug("Loaded default, sorting appendices")
 
@@ -318,7 +321,7 @@ export class ModuleManager {
         try {
           Logger.debug(`Loading module ${module.id}`)
           //load the module
-          await this.load(module.id, module.modules)
+          await this.load(module.id, module.module)
           Logger.info(`Successfully loaded module ${module.id}`)
         } catch (err) {
           if (err instanceof ModuleLoadFail) {
@@ -347,6 +350,10 @@ export class ModuleManager {
       }
     }
 
+    //trigger reload event
+    Logger.debug("Sending reload event")
+    this.client.emit("reload")
+
     //reload command manager cache
     Logger.debug("Reloading command manager cache")
     await this.interactionManager.refreshCommandCache(clearOldCommands)
@@ -361,7 +368,7 @@ export class ModuleManager {
    * Gets all the enabled modules
    * @returns Enabled modules
    */
-  public getEnabledModules(): Map<string, moduleData[]> {
+  public getEnabledModules(): Map<string, ModuleBase> {
     return this.enabledModules
   }
 
@@ -369,15 +376,19 @@ export class ModuleManager {
    * Gets all the enabled modules
    * @returns Enabled modules
    */
-  public async getDisabledModules(): Promise<Map<string, moduleData[]>> {
-    const disabledModules = new Map<string, moduleData[]>()
+  public async getDisabledModules(): Promise<Map<string, ModuleBase>> {
+    const disabledModules = new Map<string, ModuleBase>()
     const it = this.modules.keys()
     let result = it.next()
     while (!result.done) {
       const module = result.value
       if (!this.enabledModules.has(module)) {
-        const data = await this.fetchModule(module)
-        disabledModules.set(module, data)
+        try {
+          const data = await this.fetchModule(module)
+          disabledModules.set(module, data)
+        } catch (err) {
+          Logger.warn(`Unable to get disabled module ${module}`)
+        }
       }
 
       result = it.next()
@@ -393,10 +404,10 @@ export class ModuleManager {
    * @returns If the modules were loaded
   */
   //Loads a provided module
-  public async load(id: string, modules: ModuleBase[]): Promise<boolean> {
+  public async load(id: string, module: ModuleBase): Promise<boolean> {
     //check the id provided is valid for a folder
     if (!this.validateID(id)) {
-      throw new Error(`Unable to load "${id}", invalid id. ID must only contain letters, numbers, and underscores`)
+      throw new InvalidModuleIDException(id)
     }
 
     //check if the module is disabled
@@ -409,20 +420,14 @@ export class ModuleManager {
       throw new Error(`Unable to load ${id}, module is already loaded`)
     }
 
-    //Check modules are valid
-    if (modules.length === 0) {
-      throw new Error(`Unable to load ${id}, no modules provided`)
-    }
 
     //get all parents
     const parents: Set<string> = new Set()
-    modules.forEach(module => {
-      if (module.depend_on) {
-        module.depend_on.forEach(parent => {
-          parents.add(parent)
-        })
-      }
-    })
+    if (module.depend_on) {
+      module.depend_on.forEach(parent => {
+        parents.add(parent)
+      })
+    }
 
     //check if all the parents are loaded
     for (const parent of parents) {
@@ -433,62 +438,50 @@ export class ModuleManager {
 
     //load the modules
     Logger.debug(`Loading module for ${id}`)
-    const data: ModuleBase[] = []
-    let error: unknown | undefined = undefined
-    for (const module of modules) {
-      try {
-        Logger.debug(`Loading module ${module.name} from ${id}`)
-        if (module.load) {
-          await module.load(this.client)
-        }
-        data.push(module)
-      } catch (err) {
-        Logger.warn(`Failed to load part '${module.name}' from '${id}'`)
-        error = err
-        break
+    try {
+      Logger.debug(`Loading module ${module.name} from ${id}`)
+      if (module.load) {
+        await module.load(this.client)
       }
-
-      //register commands
-      if (module.commands) {
-        Logger.debug(`Registering commands for module ${module.name} from ${id}`)
-        for (const command of module.commands) {
-          this.interactionManager.addCommand(command, id)
-        }
-      }
-
-      //register buttons
-      if (module.buttons) {
-        Logger.debug(`Registering buttons for module ${module.name} from ${id}`)
-        for (const button of module.buttons) {
-          this.interactionManager.addButtonInteraction(button[0], button[1], id)
-        }
-      }
-
-      //register modals
-      if (module.modals) {
-        Logger.debug(`Registering modals for module ${module.name} from ${id}`)
-        for (const modal of module.modals) {
-          this.interactionManager.addModalInteraction(modal[0], modal[1], id)
-        }
-      }
-
-      //register menus
-      if (module.menus) {
-        Logger.debug(`Registering select menus for module ${module.name} from ${id}`)
-        for (const menu of module.menus) {
-          this.interactionManager.addSelectMenuInteraction(menu[0], menu[1], id)
-        }
-      }
-
+    } catch (error) {
+      await this.interactionManager.removeModuleData(id)
+      throw new ModuleLoadFail(id, `Failed to execute module loaded ${error}`)
     }
 
-    if (error != undefined) {
-      await this.interactionManager.removeModuleData(id)
-      throw new ModuleLoadFail(id, error)
+    //register commands
+    if (module.commands) {
+      Logger.debug(`Registering commands for module ${module.name} from ${id}`)
+      for (const command of module.commands) {
+        this.interactionManager.addCommand(command, id)
+      }
+    }
+
+    //register buttons
+    if (module.buttons) {
+      Logger.debug(`Registering buttons for module ${module.name} from ${id}`)
+      for (const button of module.buttons) {
+        this.interactionManager.addButtonInteraction(button[0], button[1], id)
+      }
+    }
+
+    //register modals
+    if (module.modals) {
+      Logger.debug(`Registering modals for module ${module.name} from ${id}`)
+      for (const modal of module.modals) {
+        this.interactionManager.addModalInteraction(modal[0], modal[1], id)
+      }
+    }
+
+    //register menus
+    if (module.menus) {
+      Logger.debug(`Registering select menus for module ${module.name} from ${id}`)
+      for (const menu of module.menus) {
+        this.interactionManager.addSelectMenuInteraction(menu[0], menu[1], id)
+      }
     }
 
     this.modules.add(id)
-    this.enabledModules.set(id, data)
+    this.enabledModules.set(id, module)
     Logger.info(`Loaded module ${id}`)
     return true
   }
@@ -508,13 +501,11 @@ export class ModuleManager {
    * @returns An array of the modules found within the folder
   */
   //fetch function, will fetch a module(s) from its folder and return it, or null if no module is loaded
-  private async fetchModule(id: string): Promise<ModuleBase[]> {
-    const modules: ModuleBase[] = []
+  private async fetchModule(id: string): Promise<ModuleBase> {
 
     //validate the file name as a valid module id
     if (!this.validateID(id)) {
-      Logger.warn(`Invalid module id "${id}", ID must only contain letters, numbers, and underscores`)
-      return modules
+      throw new InvalidModuleIDException(id)
     }
 
     //check if the folder exists
@@ -523,42 +514,40 @@ export class ModuleManager {
       if (existsSync(join(this.PATH, id, "module.js"))) {
         try {
           //load the module file
-          const moduleFile = await import(join(this.PATH, id, "module.js"))
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          const Module = require(join(this.PATH, id, "module.js")).default
           Logger.debug(`Fetched module file for ${id}, loading module classes`)
 
           //load classes of module
-          for (const className in moduleFile) {
-            Logger.debug(`Fetching module ${className} from module ${id}`)
-            let module: unknown
-            try {
-              module = new moduleFile[className]()
-            } catch (err) {
-              Logger.silly(`${className} from module ${id} could not be constructed: ${err}`)
-              module = moduleFile[className]
-            }
-
-            //check if the class is a module
-            if (this.isModule(module)) {
-              //check the module is valid
-              if (module.name !== "") {
-                //add the module to the list
-                modules.push(module)
-              }
-            } else {
-              Logger.silly(`${className} from module ${id} is not a module class`)
-            }
+          Logger.debug(`Fetching module ${id}`)
+          let module: ModuleBase
+          try {
+            module = new Module()
+          } catch (err) {
+            Logger.silly(`Could not create module ${id}: ${err}`)
+            throw new NotAModuleException(id)
           }
+
+          //check if the class is a module
+          if (this.isModule(module)) {
+            //check the module is valid
+            if (module.name === "") {
+              throw new NotAModuleException(id)
+            }
+          } else {
+            throw new NotAModuleException(id)
+          }
+
+          return module
         } catch (error) {
-          Logger.warn(`Failed to fetch module ${id}: ${error}`)
+          throw new ModuleFetchException(`${error}`)
         }
       } else {
-        Logger.warn(`Module ${id} does not have a module.js file`)
+        throw new ModuleFetchException(`Module ${id} does not have a module.js file`)
       }
     } else {
-      Logger.warn(`Module ${id} does not exist`)
+      throw new ModuleFetchException(`Module ${id} does not exist`)
     }
-
-    return modules
   }
 
   /**
@@ -571,26 +560,23 @@ export class ModuleManager {
     if (this.enabledModules.has(id)) {
       Logger.debug(`Unloading module ${id}`)
       //get the modules
-      const modules = this.enabledModules.get(id)
+      const module = this.enabledModules.get(id)
 
       //check it has modules
-      if (modules === undefined) {
-        Logger.warn(`Unable to unload ${id}, unable to fetch modules`)
-        this.enabledModules.delete(id) //remove it anyway
-        return false
-      }
-      if (modules.length === 0) {
-        Logger.warn(`Unable to unload ${id}, no modules to unload`)
+      if (module === undefined) {
+        Logger.warn(`Unable to unload ${id}, unable to fetch module`)
         this.enabledModules.delete(id) //remove it anyway
         return false
       }
 
       //unload the modules
-      for (const module of modules) {
+      try {
         if (module.unload) {
           Logger.debug(`Unloading module ${module.name} from ${id}`)
           module.unload(this.client)
         }
+      } catch (err) {
+        Logger.severe(`Failed run module unload ${id}: ${err}`)
       }
 
       //remove any interactions related to a module id
@@ -705,14 +691,12 @@ class DefaultModule implements ModuleBase {
         ],
       },
       function: (interaction) => {
-        function getModuleFields(id: string, modules: moduleData[]): EmbedField[] {
+        function getModuleFields(id: string, module: ModuleBase): EmbedField[] {
           const fields: EmbedField[] = []
-          for (const module of modules) {
-            if (Array.isArray(module.author)) {
-              fields.push({ name: `${module.name} (*${id}*) v${module.version}`, value: `${module.description}\n*By: ${module.author.join(", ")}*`, inline: false })
-            } else {
-              fields.push({ name: `${module.name} (*${id}*) v${module.version}`, value: `${module.description}\n*By: ${module.author}*`, inline: false })
-            }
+          if (Array.isArray(module.author)) {
+            fields.push({ name: `${module.name} (*${id}*) v${module.version}`, value: `${module.description}\n*By: ${module.author.join(", ")}*`, inline: false })
+          } else {
+            fields.push({ name: `${module.name} (*${id}*) v${module.version}`, value: `${module.description}\n*By: ${module.author}*`, inline: false })
           }
 
           return fields
@@ -727,8 +711,8 @@ class DefaultModule implements ModuleBase {
               color: global.colors.success,
             })
 
-            for (const [ id, modules ] of this.moduleManager.getEnabledModules()) {
-              enabled.addFields(getModuleFields(id, modules))
+            for (const [ id, module ] of this.moduleManager.getEnabledModules()) {
+              enabled.addFields(getModuleFields(id, module))
             }
 
             this.moduleManager.getDisabledModules().then(disabledModules => {
@@ -749,9 +733,11 @@ class DefaultModule implements ModuleBase {
                 let result = it.next()
                 while (!result.done) {
                   const id = result.value
-                  const modules = disabledModules.get(id) || []
+                  const module = disabledModules.get(id)
 
-                  disabled.addFields(getModuleFields(id, modules))
+                  if (module != null) {
+                    disabled.addFields(getModuleFields(id, module))
+                  }
 
                   result = it.next()
                 }
@@ -873,16 +859,16 @@ class DefaultModule implements ModuleBase {
  */
 type moduleInfo = {
   id: string,
-  modules: ModuleBase[],
+  module: ModuleBase,
   parents: Set<string>
 }
 
-type moduleData = {
-  name: string,
-  description: string,
-  depends_on?: string[],
-  version: string,
-  author: string | string[],
-  unload?: (client: Client) => void;
-}
+// type moduleData = {
+//   name: string,
+//   description: string,
+//   depends_on?: string[],
+//   version: string,
+//   author: string | string[],
+//   unload?: (client: Client) => void;
+// }
 

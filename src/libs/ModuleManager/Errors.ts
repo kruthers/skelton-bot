@@ -1,5 +1,23 @@
 import { APIEmbed, ChatInputCommandInteraction, EmbedBuilder, Interaction } from "discord.js"
 
+export class ModuleFetchException extends Error {
+  constructor(msg = "An unknown exception occurred") {
+    super(`Failed to fetch module: ${msg}`)
+  }
+}
+
+export class InvalidModuleIDException extends ModuleFetchException {
+  constructor(id: string) {
+    super(`Invalid module id "${id}", ID must only contain letters, numbers, and underscores`)
+  }
+}
+
+export class NotAModuleException extends ModuleFetchException {
+  constructor(id: string) {
+    super(`Unable to create new module for ${id}. Ensure the class implements ModuleBase and is "export default"`)
+  }
+}
+
 export class InteractionException extends Error {
   constructor (msg = "Failed to process interaction: An unknown exception occurred", public logStack = false) {
     super(msg)

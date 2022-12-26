@@ -1,7 +1,7 @@
 import { cyan, grey } from "colors"
 import { BaseGuildTextChannel, Guild, Message } from "discord.js"
 import { join } from "path"
-import { createLogger, format, transports } from "winston"
+import { createLogger, format, Logger as WLogger, transports } from "winston"
 import DailyRotateFile = require("winston-daily-rotate-file");
 
 export function getDateFormatted(): string {
@@ -94,38 +94,43 @@ export const Logger = {
   },
 }
 
-const log = createLogger({
-  levels: levels,
-  level: "info",
-  transports: [
-    Logger.transports.console,
-    Logger.transports.file,
-  ],
-  exceptionHandlers: [
-    new transports.File({
-      filename: "exceptions.log",
-      dirname: join(__dirname, "../logs"),
-      format: format.combine(
-        format.timestamp({ format: "HH:mm:ss.SSS" }),
-        display,
-        format.uncolorize(),
-      ),
-    }),
-  ],
-  rejectionHandlers: [
-    new transports.File({
-      filename: "rejections.log",
-      dirname: join(__dirname, "../logs"),
-      format: format.combine(
-        format.timestamp({ format: "YY-MM-DD HH:mm:ss.SSS" }),
-        display,
-        format.uncolorize(),
-      ),
-    }),
-  ],
-  handleExceptions: true,
-  exitOnError: false,
-})
+
+let log: WLogger
+
+export function startLogger(path: string) {
+  log = createLogger({
+    levels: levels,
+    level: "info",
+    transports: [
+      Logger.transports.console,
+      Logger.transports.file,
+    ],
+    exceptionHandlers: [
+      new transports.File({
+        filename: "exceptions.log",
+        dirname: path,
+        format: format.combine(
+          format.timestamp({ format: "HH:mm:ss.SSS" }),
+          display,
+          format.uncolorize(),
+        ),
+      }),
+    ],
+    rejectionHandlers: [
+      new transports.File({
+        filename: "rejections.log",
+        dirname: path,
+        format: format.combine(
+          format.timestamp({ format: "YY-MM-DD HH:mm:ss.SSS" }),
+          display,
+          format.uncolorize(),
+        ),
+      }),
+    ],
+    handleExceptions: true,
+    exitOnError: false,
+  })
+}
 
 //specific logger to handle message logging
 const msgLog = createLogger({
@@ -147,3 +152,6 @@ const msgLog = createLogger({
     }),
   ],
 })
+
+
+

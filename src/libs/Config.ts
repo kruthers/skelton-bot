@@ -2,12 +2,10 @@ import { existsSync, mkdirSync, writeFile, writeFileSync } from "fs"
 import { join } from "path"
 import { Logger } from "./logger"
 
-const PATH = join(__dirname, "../config/")
-
 export function loadFolder(): boolean {
-  if (!existsSync(PATH)) {
+  if (!existsSync(Config.PATH)) {
     try {
-      mkdirSync(PATH)
+      mkdirSync(Config.PATH)
       return true
     } catch (error) {
       Logger.severe("Unable to create config directory aborting start")
@@ -20,6 +18,8 @@ export function loadFolder(): boolean {
 }
 
 export default class Config<T> {
+  public static PATH = join(__dirname, "../config/")
+
   public readonly path
   public readonly default: T
   public readonly name: string
@@ -29,44 +29,43 @@ export default class Config<T> {
    * Creates a config file object, used to manage the config file
    * @param name the name of the file (no file extension)
    * @param defaultConfig The default content used to create the rile
+   * @param autoLoad Automatically save/ load the file once created
    */
-  constructor(name: string, defaultConfig: T) {
+  constructor(name: string, defaultConfig: T, autoLoad = true) {
     //save values
     this.name = name
     this.default = defaultConfig
     this.data = this.default
-    this.path = join(PATH, `${this.name}.json`)
+    this.path = join(Config.PATH, `${this.name}.json`)
 
-    if (!existsSync(this.path)) {
-      // if it does not log to Logger as warn and try to create it
-      Logger.warn(`Failed to find config file ${this.name}.json, creating a new one`)
-      this.save(true)
-    } else {
-      this.load()
-    }
-
+    if (autoLoad) this.load()
   }
 
   /**
    * Loads the config file
    * @param exitOnFail will force the box to exit abruptly if it fails to load
    */
-  load(exitOnFail = false) {
+  async load(exitOnFail = false) {
     //check its not already loaded and remove it
     if (require.cache[this.path]) {
       delete require.cache[this.path]
     }
 
-    try {
-      this.data = require(this.path)
-    } catch (error) {
-      Logger.warn(`Failed to load file ${this.name}.json. ${error}`)
-      this.data = this.default
-      if (exitOnFail) {
-        Logger.severe(`Exciting bot due to failure to load ${this.name}.json`)
-        process.exit(1)
+    if (existsSync(this.path)) {
+      try {
+        this.data = require(this.path)
+      } catch (error) {
+        Logger.warn(`Failed to load file ${this.name}.json. ${error}`)
+        this.data = this.default
+        if (exitOnFail) {
+          Logger.severe(`Exciting bot due to failure to load ${this.name}.json`)
+          process.exit(1)
+        }
       }
+    } else {
+      this.data = this.default
     }
+    await this.save(exitOnFail)
   }
 
   /**
