@@ -18,6 +18,12 @@ export class NotAModuleException extends ModuleFetchException {
   }
 }
 
+export class ReloadException extends Error {
+  constructor(msg = "An unknown exception occurred") {
+    super(msg)
+  }
+}
+
 export class InteractionException extends Error {
   constructor (msg = "Failed to process interaction: An unknown exception occurred", public logStack = false) {
     super(msg)

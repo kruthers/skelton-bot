@@ -8,6 +8,9 @@ export declare class InvalidModuleIDException extends ModuleFetchException {
 export declare class NotAModuleException extends ModuleFetchException {
     constructor(id: string);
 }
+export declare class ReloadException extends Error {
+    constructor(msg?: string);
+}
 export declare class InteractionException extends Error {
     logStack: boolean;
     constructor(msg?: string, logStack?: boolean);

@@ -38,6 +38,9 @@ class ModuleManager {
      * Will initialize all the bots modules, must be called on load
      */
     async init() {
+        await this.config.load();
+        global.colours = this.config.data.colours;
+        global.colors = global.colours;
         if (this.modules.size !== 0) {
             logger_1.Logger.warn("Warning tried to re-initialize an already initialized module manager, aborting initialization");
             return false;
@@ -50,9 +53,6 @@ class ModuleManager {
             logger_1.Logger.severe(`Failed to initialize module manager: ${error}`);
             return false;
         });
-        await this.config.load();
-        global.colours = this.config.data.colours;
-        global.colors = global.colours;
         return true;
     }
     /**
@@ -260,7 +260,8 @@ class ModuleManager {
         }
         //load all the modules
         let failed = 0;
-        while (modulesInfo.length > 0) {
+        let error = undefined;
+        while (modulesInfo.length > 0 && error === undefined) {
             const module = modulesInfo[0];
             let goodToLoad = true;
             for (const parent of module.parents) {
@@ -277,10 +278,10 @@ class ModuleManager {
                 }
                 catch (err) {
                     if (err instanceof Errors_1.ModuleLoadFail) {
-                        logger_1.Logger.severe(`${err}`);
+                        error = err;
                     }
                     else {
-                        logger_1.Logger.severe(`${new Errors_1.ModuleLoadFail(`${err}`)}`);
+                        error = new Errors_1.ModuleLoadFail(`${err}`);
                     }
                 }
                 modulesInfo.shift();
@@ -296,8 +297,7 @@ class ModuleManager {
                     //reload command manager cache
                     logger_1.Logger.debug("Reloading command manager cache");
                     await this.interactionManager.refreshCommandCache(clearOldCommands);
-                    //terminate process
-                    throw new Error("Unable to load all modules, dependencies are not met");
+                    error = new Errors_1.ReloadException("Unable to load all modules, dependencies are not met");
                 }
             }
         }
@@ -309,7 +309,12 @@ class ModuleManager {
         await this.interactionManager.refreshCommandCache(clearOldCommands);
         logger_1.Logger.info("Register listener");
         this.client.on("interactionCreate", (interaction) => { this.interactionManager.onInteraction(interaction); });
-        logger_1.Logger.info("Reload completed".green);
+        if (error === undefined) {
+            logger_1.Logger.info("Reload completed".green);
+        }
+        else {
+            throw error;
+        }
     }
     /**
      * Gets all the enabled modules

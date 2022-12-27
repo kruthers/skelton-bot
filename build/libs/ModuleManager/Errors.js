@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ModuleLoadFail = exports.getErrorEmbed = exports.UnknownSubCommandException = exports.UnknownCommandException = exports.ModalException = exports.ButtonException = exports.CommandException = exports.InteractionException = exports.NotAModuleException = exports.InvalidModuleIDException = exports.ModuleFetchException = void 0;
+exports.ModuleLoadFail = exports.getErrorEmbed = exports.UnknownSubCommandException = exports.UnknownCommandException = exports.ModalException = exports.ButtonException = exports.CommandException = exports.InteractionException = exports.ReloadException = exports.NotAModuleException = exports.InvalidModuleIDException = exports.ModuleFetchException = void 0;
 const discord_js_1 = require("discord.js");
 class ModuleFetchException extends Error {
     constructor(msg = "An unknown exception occurred") {
@@ -20,6 +20,12 @@ class NotAModuleException extends ModuleFetchException {
     }
 }
 exports.NotAModuleException = NotAModuleException;
+class ReloadException extends Error {
+    constructor(msg = "An unknown exception occurred") {
+        super(msg);
+    }
+}
+exports.ReloadException = ReloadException;
 class InteractionException extends Error {
     logStack;
     constructor(msg = "Failed to process interaction: An unknown exception occurred", logStack = false) {
