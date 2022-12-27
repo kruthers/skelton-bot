@@ -12,5 +12,6 @@
     "lib": ["DOM", "ES2021"],
     "resolveJsonModule": true,
     "typeRoots": ["./src/types"]
-  }
+  },
+  "exclude": ["build/**/*","test/**/*"]
 }

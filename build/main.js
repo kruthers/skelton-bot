@@ -1,10 +1,34 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 const path_1 = require("path");
 const Config_1 = require("./libs/Config");
 const logger_1 = require("./libs/logger");
 const main_1 = require("./libs/ModuleManager/main");
+const Module_1 = require("./libs/ModuleManager/types/Module");
+//Libs
+exports.Logger = logger_1.Logger;
+exports.Config = Config_1.default;
+//Module manager
+exports.ModuleBase = Module_1.default;
+//exceptions
+// exports.CommandException = CommandException
+// exports.CommandException = InteractionException
+__exportStar(require("./libs/ModuleManager/Errors"), exports);
 class Client extends discord_js_1.Client {
     forcedToken;
     name;

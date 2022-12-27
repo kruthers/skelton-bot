@@ -1,5 +1,6 @@
 import { Client as DClient } from "discord.js";
 import ModuleBase from "./libs/ModuleManager/types/Module";
+export * from "./libs/ModuleManager/Errors";
 export default class Client extends DClient {
     private readonly forcedToken;
     private readonly name;
