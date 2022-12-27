@@ -11,7 +11,7 @@
     "skipLibCheck": true,
     "lib": ["DOM", "ES2021"],
     "resolveJsonModule": true,
-    "typeRoots": ["./src/types"]
+    "typeRoots": ["src/types/global.d.ts", "src/types/node.d.ts"]
   },
   "exclude": ["build/**/*","test/**/*"]
 }
