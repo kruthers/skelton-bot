@@ -1,7 +1,6 @@
 export declare function loadFolder(): boolean;
 export default class Config<T> {
     static PATH: string;
-    readonly path: string;
     readonly default: T;
     readonly name: string;
     data: T;
@@ -12,6 +11,7 @@ export default class Config<T> {
      * @param autoLoad Automatically save/ load the file once created
      */
     constructor(name: string, defaultConfig: T, autoLoad?: boolean);
+    private getPath;
     /**
      * Loads the config file
      * @param exitOnFail will force the box to exit abruptly if it fails to load

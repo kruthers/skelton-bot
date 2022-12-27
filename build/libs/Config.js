@@ -20,8 +20,7 @@ function loadFolder() {
 }
 exports.loadFolder = loadFolder;
 class Config {
-    static PATH = (0, path_1.join)(__dirname, "../config/");
-    path;
+    static PATH;
     default;
     name;
     data;
@@ -36,9 +35,11 @@ class Config {
         this.name = name;
         this.default = defaultConfig;
         this.data = this.default;
-        this.path = (0, path_1.join)(Config.PATH, `${this.name}.json`);
         if (autoLoad)
             this.load();
+    }
+    getPath() {
+        return (0, path_1.join)(Config.PATH, `${this.name}.json`);
     }
     /**
      * Loads the config file
@@ -46,12 +47,12 @@ class Config {
      */
     async load(exitOnFail = false) {
         //check its not already loaded and remove it
-        if (require.cache[this.path]) {
-            delete require.cache[this.path];
+        if (require.cache[this.getPath()]) {
+            delete require.cache[this.getPath()];
         }
-        if ((0, fs_1.existsSync)(this.path)) {
+        if ((0, fs_1.existsSync)(this.getPath())) {
             try {
-                this.data = require(this.path);
+                this.data = require(this.getPath());
             }
             catch (error) {
                 logger_1.Logger.warn(`Failed to load file ${this.name}.json. ${error}`);
@@ -73,7 +74,7 @@ class Config {
      */
     save(exitOnFail = false) {
         return new Promise((resolve, reject) => {
-            (0, fs_1.writeFile)(this.path, JSON.stringify(this.data, null, 4), (err) => {
+            (0, fs_1.writeFile)(this.getPath(), JSON.stringify(this.data, null, 4), (err) => {
                 if (err) {
                     logger_1.Logger.warn(`Failed to create ${this.name}.json: ${err}`);
                     logger_1.Logger.severe(`Failed to create config file ${this.name}.json`);
