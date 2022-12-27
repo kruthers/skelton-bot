@@ -28,3 +28,5 @@ var Module_1 = require("./libs/ModuleManager/types/Module");
 Object.defineProperty(exports, "ModuleBase", { enumerable: true, get: function () { return Module_1.default; } });
 //exceptions
 __exportStar(require("./libs/ModuleManager/Errors"), exports);
+//
+exports.global = global;
