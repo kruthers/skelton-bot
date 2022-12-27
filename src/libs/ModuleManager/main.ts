@@ -39,6 +39,7 @@ export default class ModuleManager {
       },
       disabled: [],
     },
+    false,
   )
 
 
@@ -53,6 +54,7 @@ export default class ModuleManager {
    * Will initialize all the bots modules, must be called on load
    */
   async init(): Promise<boolean> {
+    await this.config.load()
     if (this.modules.size !== 0) {
       Logger.warn("Warning tried to re-initialize an already initialized module manager, aborting initialization")
       return false

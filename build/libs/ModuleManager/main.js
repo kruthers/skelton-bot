@@ -28,7 +28,7 @@ class ModuleManager {
             neutral: 3259125,
         },
         disabled: [],
-    });
+    }, false);
     constructor(client, path) {
         this.client = client;
         this.interactionManager = new InteractionManager_1.default(client);
@@ -38,6 +38,7 @@ class ModuleManager {
      * Will initialize all the bots modules, must be called on load
      */
     async init() {
+        await this.config.load();
         if (this.modules.size !== 0) {
             logger_1.Logger.warn("Warning tried to re-initialize an already initialized module manager, aborting initialization");
             return false;
