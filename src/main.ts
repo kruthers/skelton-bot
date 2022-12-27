@@ -13,4 +13,4 @@ export { default as ModuleBase, BotCommand } from "./libs/ModuleManager/types/Mo
 export * from "./libs/ModuleManager/Errors"
 
 //
-exports.global = global
+export default global.colours

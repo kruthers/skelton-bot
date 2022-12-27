@@ -29,4 +29,4 @@ Object.defineProperty(exports, "ModuleBase", { enumerable: true, get: function (
 //exceptions
 __exportStar(require("./libs/ModuleManager/Errors"), exports);
 //
-exports.global = global;
+exports.default = global.colours;
