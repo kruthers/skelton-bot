@@ -260,8 +260,8 @@ class ModuleManager {
         }
         //load all the modules
         let failed = 0;
-        let error = undefined;
-        while (modulesInfo.length > 0 && error === undefined) {
+        const errors = [];
+        while (modulesInfo.length > 0 && failed < modulesInfo.length) {
             const module = modulesInfo[0];
             let goodToLoad = true;
             for (const parent of module.parents) {
@@ -278,10 +278,10 @@ class ModuleManager {
                 }
                 catch (err) {
                     if (err instanceof Errors_1.ModuleLoadFail) {
-                        error = err;
+                        errors.push(`${err}`);
                     }
                     else {
-                        error = new Errors_1.ModuleLoadFail(`${err}`);
+                        errors.push(`${new Errors_1.ModuleLoadFail(`${err}`)}`);
                     }
                 }
                 modulesInfo.shift();
@@ -294,10 +294,7 @@ class ModuleManager {
                 if (failed >= modulesInfo.length) {
                     logger_1.Logger.severe("Reload cycle failed, some modules will not be working.");
                     logger_1.Logger.info(`Known modules: ${(0, StringUtils_1.StringSetToSting)(this.modules)}, Loaded modules: ${(0, StringUtils_1.StringIteratorToSting)(this.enabledModules.keys())}`);
-                    //reload command manager cache
-                    logger_1.Logger.debug("Reloading command manager cache");
-                    await this.interactionManager.refreshCommandCache(clearOldCommands);
-                    error = new Errors_1.ReloadException("Unable to load all modules, dependencies are not met");
+                    errors.push("Unable to load all modules, dependencies are not met");
                 }
             }
         }
@@ -309,11 +306,14 @@ class ModuleManager {
         await this.interactionManager.refreshCommandCache(clearOldCommands);
         logger_1.Logger.info("Register listener");
         this.client.on("interactionCreate", (interaction) => { this.interactionManager.onInteraction(interaction); });
-        if (error === undefined) {
+        if (errors.length == 0) {
             logger_1.Logger.info("Reload completed".green);
         }
+        else if (errors.length == 1) {
+            throw new Errors_1.ReloadException(errors[0]);
+        }
         else {
-            throw error;
+            throw new Errors_1.ReloadException(errors.join("\n"));
         }
     }
     /**

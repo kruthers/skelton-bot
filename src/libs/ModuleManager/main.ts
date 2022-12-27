@@ -309,8 +309,8 @@ export default class ModuleManager {
 
     //load all the modules
     let failed = 0
-    let error: Error | undefined = undefined
-    while (modulesInfo.length > 0 && error === undefined) {
+    const errors: string[] = []
+    while (modulesInfo.length > 0 && failed < modulesInfo.length) {
       const module = modulesInfo[0]
       let goodToLoad = true
       for (const parent of module.parents) {
@@ -327,9 +327,9 @@ export default class ModuleManager {
           Logger.info(`Successfully loaded module ${module.id}`)
         } catch (err) {
           if (err instanceof ModuleLoadFail) {
-            error = err
+            errors.push(`${err}`)
           } else {
-            error = new ModuleLoadFail(`${err}`)
+            errors.push(`${new ModuleLoadFail(`${err}`)}`)
           }
         }
         modulesInfo.shift()
@@ -342,12 +342,8 @@ export default class ModuleManager {
         if (failed >= modulesInfo.length) {
           Logger.severe("Reload cycle failed, some modules will not be working.")
           Logger.info(`Known modules: ${StringSetToSting(this.modules)}, Loaded modules: ${StringIteratorToSting(this.enabledModules.keys())}`)
-          //reload command manager cache
-          Logger.debug("Reloading command manager cache")
-          await this.interactionManager.refreshCommandCache(clearOldCommands)
 
-
-          error = new ReloadException("Unable to load all modules, dependencies are not met")
+          errors.push("Unable to load all modules, dependencies are not met")
         }
       }
     }
@@ -363,10 +359,12 @@ export default class ModuleManager {
     Logger.info("Register listener")
     this.client.on("interactionCreate", (interaction) => { this.interactionManager.onInteraction(interaction) })
 
-    if (error === undefined) {
+    if (errors.length == 0) {
       Logger.info("Reload completed".green)
+    } else if (errors.length == 1) {
+      throw new ReloadException(errors[0])
     } else {
-      throw error
+      throw new ReloadException(errors.join("\n"))
     }
   }
 
