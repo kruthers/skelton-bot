@@ -1,11 +1,12 @@
 {
   "name": "skelton-bot",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A simple bot library with advanced capabilities",
-
-  "main": "main.js",
+  "main": "./build/main.js",
+  "types": "./build/main.d.ts",
   "scripts": {
-    "test": "tsc && node test/example.js"
+    "test": "tsc && node test/example.js",
+    "build": "tsc --outdir build/"
   },
   "repository": {
     "type": "git",
