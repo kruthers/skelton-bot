@@ -14,7 +14,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ModuleBase = exports.Config = exports.Logger = exports.Client = void 0;
+exports.colours = exports.colors = exports.ModuleBase = exports.Config = exports.Logger = exports.Client = void 0;
 //client
 var BotClient_1 = require("./BotClient");
 Object.defineProperty(exports, "Client", { enumerable: true, get: function () { return BotClient_1.default; } });
@@ -29,4 +29,5 @@ Object.defineProperty(exports, "ModuleBase", { enumerable: true, get: function (
 //exceptions
 __exportStar(require("./libs/ModuleManager/Errors"), exports);
 //
-exports.default = global.colours;
+exports.colors = global.colors;
+exports.colours = global.colours;
