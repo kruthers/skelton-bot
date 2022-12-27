@@ -6,10 +6,18 @@ import Config from "../Config"
 import { Logger } from "../logger"
 import { StringIteratorToSting, StringSetToSting } from "../StringUtils"
 import InteractionManager from "./InteractionManager"
-import { InvalidModuleIDException, ModuleFetchException, ModuleLoadFail, NotAModuleException, ReloadException } from "./Errors"
+import { getErrorEmbed, InvalidModuleIDException, ModuleFetchException, ModuleLoadFail, NotAModuleException, ReloadException } from "./Errors"
 import { mkdir } from "fs/promises"
 import BotClient from "../../BotClient"
+import { colours } from "./types/interactionManagerData"
 
+export let Colours: colours = {
+  error: 15747399,
+  success: 6549575,
+  warn: 16763481,
+  standby: 10395294,
+  neutral: 3259125,
+}
 
 export default class ModuleManager {
 
@@ -24,23 +32,18 @@ export default class ModuleManager {
 
   private readonly PATH
 
-  private client: BotClient
+  private readonly client: BotClient
 
-  private config: Config<moduleConfig> = new Config(
+  private readonly config: Config<moduleConfig> = new Config(
     "modules",
     {
       response_deletion_time: 15000,
-      colours: {
-        error: 15747399,
-        success: 6549575,
-        warn: 16763481,
-        standby: 10395294,
-        neutral: 3259125,
-      },
+      colours: Colours,
       disabled: [],
     },
     false,
   )
+
 
 
   constructor(client: BotClient, path: string) {
@@ -55,8 +58,9 @@ export default class ModuleManager {
    */
   async init(): Promise<boolean> {
     await this.config.load()
-    global.colours = this.config.data.colours
-    global.colors = global.colours
+    Colours = this.config.data.colours
+    global.colours = Colours
+    global.colors = Colours
 
     if (this.modules.size !== 0) {
       Logger.warn("Warning tried to re-initialize an already initialized module manager, aborting initialization")
@@ -239,8 +243,9 @@ export default class ModuleManager {
     this.config.load()
 
     //update colours
-    global.colours = this.config.data.colours
-    global.colors = global.colours
+    Colours = this.config.data.colours
+    global.colours = Colours
+    global.colors = Colours
 
     //clear loaded modules and modules list
     this.modules = new Set(modulesInfo.map(data => data.id))
@@ -449,7 +454,7 @@ export default class ModuleManager {
       }
     } catch (error) {
       await this.interactionManager.removeModuleData(id)
-      throw new ModuleLoadFail(id, `Failed to execute module loaded ${error}`)
+      throw new ModuleLoadFail(id, `Failed to execute module load ${error}`)
     }
 
     //register commands
@@ -609,7 +614,6 @@ export default class ModuleManager {
 
 }
 
-
 /**
  * Default module
  */
@@ -633,10 +637,10 @@ class DefaultModule implements ModuleBase {
         description: "Reload the bot's modules",
       },
       function: (interaction) => {
-        const reloaded: APIEmbed = {
+        const reloaded = new EmbedBuilder({
           title: "Reloaded successfully!",
           color: global.colours.success,
-        }
+        })
 
         interaction.reply({ embeds: [
           {
@@ -649,6 +653,17 @@ class DefaultModule implements ModuleBase {
               msg.edit({ embeds: [ reloaded ] })
             } else {
               interaction.channel?.send({ embeds: [ reloaded ] })
+            }
+          }).catch((error: ReloadException) => {
+            const emebed = new EmbedBuilder({
+              title: "Reload Failed",
+              description: "Some modules may not function as expected:\n```" + error.name + "```",
+              color: Colours.error,
+            })
+            if (msg instanceof Message) {
+              msg.edit({ embeds: [ emebed ] })
+            } else {
+              interaction.channel?.send({ embeds: [ emebed ] })
             }
           })
         })

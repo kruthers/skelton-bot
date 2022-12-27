@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Colours = void 0;
 const discord_js_1 = require("discord.js");
 const fs_1 = require("fs");
 const path_1 = require("path");
@@ -9,6 +10,13 @@ const StringUtils_1 = require("../StringUtils");
 const InteractionManager_1 = require("./InteractionManager");
 const Errors_1 = require("./Errors");
 const promises_1 = require("fs/promises");
+exports.Colours = {
+    error: 15747399,
+    success: 6549575,
+    warn: 16763481,
+    standby: 10395294,
+    neutral: 3259125,
+};
 class ModuleManager {
     //All enabled modules
     enabledModules = new Map;
@@ -20,13 +28,7 @@ class ModuleManager {
     client;
     config = new Config_1.default("modules", {
         response_deletion_time: 15000,
-        colours: {
-            error: 15747399,
-            success: 6549575,
-            warn: 16763481,
-            standby: 10395294,
-            neutral: 3259125,
-        },
+        colours: exports.Colours,
         disabled: [],
     }, false);
     constructor(client, path) {
@@ -39,8 +41,9 @@ class ModuleManager {
      */
     async init() {
         await this.config.load();
-        global.colours = this.config.data.colours;
-        global.colors = global.colours;
+        exports.Colours = this.config.data.colours;
+        global.colours = exports.Colours;
+        global.colors = exports.Colours;
         if (this.modules.size !== 0) {
             logger_1.Logger.warn("Warning tried to re-initialize an already initialized module manager, aborting initialization");
             return false;
@@ -197,8 +200,9 @@ class ModuleManager {
         //update data from config/ refresh config
         this.config.load();
         //update colours
-        global.colours = this.config.data.colours;
-        global.colors = global.colours;
+        exports.Colours = this.config.data.colours;
+        global.colours = exports.Colours;
+        global.colors = exports.Colours;
         //clear loaded modules and modules list
         this.modules = new Set(modulesInfo.map(data => data.id));
         this.enabledModules = new Map();
@@ -389,7 +393,7 @@ class ModuleManager {
         }
         catch (error) {
             await this.interactionManager.removeModuleData(id);
-            throw new Errors_1.ModuleLoadFail(id, `Failed to execute module loaded ${error}`);
+            throw new Errors_1.ModuleLoadFail(id, `Failed to execute module load ${error}`);
         }
         //register commands
         if (module.commands) {
@@ -557,10 +561,10 @@ class DefaultModule {
                 description: "Reload the bot's modules",
             },
             function: (interaction) => {
-                const reloaded = {
+                const reloaded = new discord_js_1.EmbedBuilder({
                     title: "Reloaded successfully!",
                     color: global.colours.success,
-                };
+                });
                 interaction.reply({ embeds: [
                         {
                             title: "Reloading...",
@@ -573,6 +577,18 @@ class DefaultModule {
                         }
                         else {
                             interaction.channel?.send({ embeds: [reloaded] });
+                        }
+                    }).catch((error) => {
+                        const emebed = new discord_js_1.EmbedBuilder({
+                            title: "Reload Failed",
+                            description: "Some modules may not function as expected:\n```" + error.name + "```",
+                            color: exports.Colours.error,
+                        });
+                        if (msg instanceof discord_js_1.Message) {
+                            msg.edit({ embeds: [emebed] });
+                        }
+                        else {
+                            interaction.channel?.send({ embeds: [emebed] });
                         }
                     });
                 });

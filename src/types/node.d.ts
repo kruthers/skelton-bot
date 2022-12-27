@@ -5,18 +5,6 @@ declare namespace globalThis {
     messages: boolean;
     commands: boolean;
   }
-  var colours: {
-    error: number;
-    success: number;
-    warn: number;
-    standby: number;
-    neutral: number;
-  }
-  var colors: {
-    error: number;
-    success: number;
-    warn: number;
-    standby: number;
-    neutral: number;
-  }
+  var colours: colours
+  var colors: colours
 }

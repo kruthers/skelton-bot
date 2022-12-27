@@ -12,3 +12,11 @@ type genericData<T> = {
   module: string,
   callback(interaction: T): void,
 }
+
+type colours = {
+  error: number;
+  success: number;
+  warn: number;
+  standby: number;
+  neutral: number;
+}

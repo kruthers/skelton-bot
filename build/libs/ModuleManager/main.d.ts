@@ -1,13 +1,15 @@
 import ModuleBase from "./types/Module";
 import InteractionManager from "./InteractionManager";
 import BotClient from "../../BotClient";
+import { colours } from "./types/interactionManagerData";
+export declare let Colours: colours;
 export default class ModuleManager {
     private enabledModules;
     modules: Set<string>;
     readonly interactionManager: InteractionManager;
     private readonly PATH;
-    private client;
-    private config;
+    private readonly client;
+    private readonly config;
     constructor(client: BotClient, path: string);
     /**
      * Will initialize all the bots modules, must be called on load
