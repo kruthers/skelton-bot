@@ -1,4 +1,4 @@
-import { APIEmbed, ApplicationCommandOptionType, ApplicationCommandType, codeBlock, EmbedBuilder, EmbedField, Events, Message } from "discord.js"
+import { APIEmbed, ApplicationCommandOptionType, ApplicationCommandType, codeBlock, EmbedBuilder, EmbedField, Message } from "discord.js"
 import { existsSync, readdirSync } from "fs"
 import { join } from "path"
 import ModuleBase, { BotCommand } from "./types/Module"

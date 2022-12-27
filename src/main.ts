@@ -5,6 +5,18 @@ import { Logger, startLogger } from "./libs/logger"
 import ModuleManager from "./libs/ModuleManager/main"
 import ModuleBase from "./libs/ModuleManager/types/Module"
 
+//Libs
+exports.Logger = Logger
+exports.Config = Config
+
+//Module manager
+exports.ModuleBase = ModuleBase
+
+//exceptions
+// exports.CommandException = CommandException
+// exports.CommandException = InteractionException
+export * from "./libs/ModuleManager/Errors"
+
 export default class Client extends DClient {
   private readonly forcedToken: string | undefined
   private readonly name: string

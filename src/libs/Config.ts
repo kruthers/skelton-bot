@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, writeFile, writeFileSync } from "fs"
+import { existsSync, mkdirSync, writeFile } from "fs"
 import { join } from "path"
 import { Logger } from "./logger"
 
