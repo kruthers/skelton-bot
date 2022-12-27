@@ -1,6 +1,6 @@
 import ModuleBase from "./types/Module";
 import InteractionManager from "./InteractionManager";
-import Client from "../../main";
+import BotClient from "../../BotClient";
 export default class ModuleManager {
     private enabledModules;
     modules: Set<string>;
@@ -8,7 +8,7 @@ export default class ModuleManager {
     private readonly PATH;
     private client;
     private config;
-    constructor(client: Client, path: string);
+    constructor(client: BotClient, path: string);
     /**
      * Will initialize all the bots modules, must be called on load
      */

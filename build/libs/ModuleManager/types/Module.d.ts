@@ -1,5 +1,5 @@
 import { ApplicationCommandData, ButtonInteraction, ChatInputCommandInteraction, ModalSubmitInteraction, RESTPostAPIApplicationCommandsJSONBody, SelectMenuInteraction } from "discord.js";
-import Client from "../../../main";
+import BotClient from "../../../BotClient";
 export default abstract class ModuleBase {
     /**
      * The name of the module
@@ -47,12 +47,12 @@ export default abstract class ModuleBase {
      * Loads the module's resources into the main system
      * @param bot The discord bot client
      */
-    load?: (client: Client) => Promise<void> | void;
+    load?: (client: BotClient) => Promise<void> | void;
     /**
      * UnLoads the module's resources into the main system
      * @param bot The discord bot client
      */
-    unload?: (client: Client) => Promise<void> | void;
+    unload?: (client: BotClient) => Promise<void> | void;
 }
 export declare type BotCommand = {
     cmd_data: ApplicationCommandData | RESTPostAPIApplicationCommandsJSONBody;

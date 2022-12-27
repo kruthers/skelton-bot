@@ -1,12 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const logger_1 = require("./libs/logger");
 const v10_1 = require("discord-api-types/v10");
 const main_1 = require("./main");
 /**
  * Initialize variables
  */
-const bot = new main_1.default({
+const bot = new main_1.Client({
     name: "Test Bot",
     intents: [
         v10_1.GatewayIntentBits.Guilds,
@@ -42,10 +41,10 @@ class ExampleModule {
         },
     ];
     load(bot) {
-        logger_1.Logger.info("Hello wold, example module has been loaded");
+        main_1.Logger.info("Hello wold, example module has been loaded");
         bot.user?.setPresence({ activities: [{ name: "Test" }], status: "online" });
     }
     unload() {
-        logger_1.Logger.info("Example module has been unloaded");
+        main_1.Logger.info("Example module has been unloaded");
     }
 }

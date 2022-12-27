@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 
 import { ApplicationCommandData, ButtonInteraction, ChatInputCommandInteraction, ModalSubmitInteraction, RESTPostAPIApplicationCommandsJSONBody, SelectMenuInteraction } from "discord.js"
-import Client from "../../../main"
+import BotClient from "../../../BotClient"
 
 export default abstract class ModuleBase {
   /**
@@ -62,14 +62,14 @@ export default abstract class ModuleBase {
    * @param bot The discord bot client
    */
   // load(bot: Client): void {}
-  load?: (client: Client) => Promise<void> | void
+  load?: (client: BotClient) => Promise<void> | void
 
   /**
    * UnLoads the module's resources into the main system
    * @param bot The discord bot client
    */
   // unload(bot: Client): void {}
-  unload?: (client: Client) => Promise<void> | void
+  unload?: (client: BotClient) => Promise<void> | void
 }
 
 export type BotCommand = {

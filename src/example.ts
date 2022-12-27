@@ -1,7 +1,5 @@
-import { Logger } from "./libs/logger"
 import { GatewayIntentBits } from "discord-api-types/v10"
-import ModuleBase, { BotCommand } from "./libs/ModuleManager/types/Module"
-import Client from "./main"
+import { BotCommand, Client, Logger, ModuleBase } from "./main"
 
 /**
  * Initialize variables

@@ -7,8 +7,8 @@ import { Logger } from "../logger"
 import { StringIteratorToSting, StringSetToSting } from "../StringUtils"
 import InteractionManager from "./InteractionManager"
 import { InvalidModuleIDException, ModuleFetchException, ModuleLoadFail, NotAModuleException } from "./Errors"
-import Client from "../../main"
 import { mkdir } from "fs/promises"
+import BotClient from "../../BotClient"
 
 
 export default class ModuleManager {
@@ -24,7 +24,7 @@ export default class ModuleManager {
 
   private readonly PATH
 
-  private client: Client
+  private client: BotClient
 
   private config: Config<moduleConfig> = new Config(
     "modules",
@@ -42,7 +42,7 @@ export default class ModuleManager {
   )
 
 
-  constructor(client: Client, path: string) {
+  constructor(client: BotClient, path: string) {
     this.client = client
     this.interactionManager = new InteractionManager(client)
     this.PATH = path
