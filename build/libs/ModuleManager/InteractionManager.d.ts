@@ -1,4 +1,4 @@
-import { ButtonInteraction, Client, CommandInteraction, Interaction, ModalSubmitInteraction, SelectMenuInteraction } from "discord.js";
+import { AutocompleteInteraction, ButtonInteraction, ChatInputCommandInteraction, Client, Interaction, ModalSubmitInteraction, SelectMenuInteraction } from "discord.js";
 import { BotCommand } from "./types/Module";
 export default class InteractionManager {
     private client;
@@ -12,7 +12,12 @@ export default class InteractionManager {
      * Process a command interaction
      * @param interaction the interaction to process as command
      */
-    processCommand(interaction: CommandInteraction): Promise<void>;
+    processCommand(interaction: ChatInputCommandInteraction): Promise<void>;
+    /**
+     * Process a command interaction
+     * @param interaction the interaction to process as command
+     */
+    processAutoComplete(interaction: AutocompleteInteraction): Promise<void>;
     /**
      * Will refresh the clients cache of commands by fetching them all
      * @param removeOld If old command should be removed from the bot

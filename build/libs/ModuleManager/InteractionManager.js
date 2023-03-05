@@ -36,6 +36,11 @@ class InteractionManager {
                 name = interaction.customId;
                 await this.processSelectMenu(interaction);
             }
+            else if (interaction.isAutocomplete()) {
+                type = "Auto Complete";
+                name = interaction.commandName;
+                await this.processAutoComplete(interaction);
+            }
             else {
                 logger_1.Logger.warn("Interaction type not yet processed by bot");
                 return;
@@ -87,6 +92,24 @@ class InteractionManager {
         await command.callback(interaction);
     }
     /**
+     * Process a command interaction
+     * @param interaction the interaction to process as command
+     */
+    //processes a command interaction
+    async processAutoComplete(interaction) {
+        const commandName = interaction.commandName;
+        const command = this.commands.get(commandName);
+        //check the command exists
+        if (!command) {
+            logger_1.Logger.warn(`Command ${commandName} not found`);
+            this.refreshCommandCache(true);
+        }
+        else if (command.autoComplete) {
+            //execute the command
+            command.autoComplete(interaction);
+        }
+    }
+    /**
      * Will refresh the clients cache of commands by fetching them all
      * @param removeOld If old command should be removed from the bot
      */
@@ -119,6 +142,7 @@ class InteractionManager {
             module: moduleID,
             name: command.name,
             callback: command.function,
+            autoComplete: command.autoComplete,
         };
         const app = this.client.application;
         let isOldCommand = false;

@@ -1,4 +1,4 @@
-import { ApplicationCommandData, ButtonInteraction, ChatInputCommandInteraction, ModalSubmitInteraction, RESTPostAPIApplicationCommandsJSONBody, SelectMenuInteraction } from "discord.js";
+import { ApplicationCommandData, AutocompleteInteraction, ButtonInteraction, ChatInputCommandInteraction, ModalSubmitInteraction, RESTPostAPIApplicationCommandsJSONBody, SelectMenuInteraction } from "discord.js";
 import BotClient from "../../../BotClient";
 export default abstract class ModuleBase {
     /**
@@ -58,4 +58,5 @@ export declare type BotCommand = {
     cmd_data: ApplicationCommandData | RESTPostAPIApplicationCommandsJSONBody;
     function: (interaction: ChatInputCommandInteraction) => void;
     name: string;
+    autoComplete?: (interaction: AutocompleteInteraction) => void | undefined;
 };
