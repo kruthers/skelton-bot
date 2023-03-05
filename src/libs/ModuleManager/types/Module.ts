@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-empty-function */
 
-import { ApplicationCommandData, ButtonInteraction, ChatInputCommandInteraction, ModalSubmitInteraction, RESTPostAPIApplicationCommandsJSONBody, SelectMenuInteraction } from "discord.js"
+import { ApplicationCommandData, AutocompleteInteraction, ButtonInteraction, ChatInputCommandInteraction, ModalSubmitInteraction, RESTPostAPIApplicationCommandsJSONBody, SelectMenuInteraction } from "discord.js"
 import BotClient from "../../../BotClient"
 
 export default abstract class ModuleBase {
@@ -76,4 +76,5 @@ export type BotCommand = {
   cmd_data: ApplicationCommandData | RESTPostAPIApplicationCommandsJSONBody;
   function: (interaction: ChatInputCommandInteraction) => void;
   name: string;
+  autoComplete?: (interaction: AutocompleteInteraction) => void | undefined;
 }

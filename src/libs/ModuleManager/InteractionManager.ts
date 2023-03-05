@@ -1,4 +1,4 @@
-import { ApplicationCommand, ButtonInteraction, Client, CommandInteraction, Interaction, ModalSubmitInteraction, SelectMenuInteraction } from "discord.js"
+import { ApplicationCommand, AutocompleteInteraction, ButtonInteraction, ChatInputCommandInteraction, Client, CommandInteraction, Interaction, ModalSubmitInteraction, SelectMenuInteraction } from "discord.js"
 import { BotCommand } from "./types/Module"
 import { Logger } from "../logger"
 import { getErrorEmbed, InteractionException, UnknownCommandException } from "./Errors"
@@ -43,6 +43,11 @@ export default class InteractionManager {
         name = interaction.customId
         await this.processSelectMenu(interaction)
 
+      } else if (interaction.isAutocomplete()) {
+        type = "Auto Complete"
+        name = interaction.commandName
+        await this.processAutoComplete(interaction)
+
       } else {
         Logger.warn("Interaction type not yet processed by bot")
         return
@@ -80,7 +85,7 @@ export default class InteractionManager {
    * @param interaction the interaction to process as command
    */
   //processes a command interaction
-  public async processCommand(interaction: CommandInteraction) {
+  public async processCommand(interaction: ChatInputCommandInteraction) {
     const commandName = interaction.commandName
 
     const command = this.commands.get(commandName)
@@ -96,6 +101,25 @@ export default class InteractionManager {
 
     //execute the command
     await command.callback(interaction)
+  }
+
+  /**
+   * Process a command interaction
+   * @param interaction the interaction to process as command
+   */
+  //processes a command interaction
+  public async processAutoComplete(interaction: AutocompleteInteraction) {
+    const commandName = interaction.commandName
+    const command = this.commands.get(commandName)
+
+    //check the command exists
+    if (!command) {
+      Logger.warn(`Command ${commandName} not found`)
+      this.refreshCommandCache(true)
+    } else if (command.autoComplete) {
+      //execute the command
+      command.autoComplete(interaction)
+    }
   }
 
   /**
@@ -130,11 +154,12 @@ export default class InteractionManager {
   // converts the bot command and module id into a command data object and adds it to the commands map (name comes from command.cmd_data.name)
   public addCommand(command: BotCommand, moduleID: string): void {
     Logger.debug(`Adding command ${command.name} to command manager`)
-    const cmdData = {
+    const cmdData: commandData = {
       id: command.cmd_data.name,
       module: moduleID,
       name: command.name,
       callback: command.function,
+      autoComplete: command.autoComplete,
     }
 
     const app = this.client.application
