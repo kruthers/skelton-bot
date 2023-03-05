@@ -76,5 +76,5 @@ export type BotCommand = {
   cmd_data: ApplicationCommandData | RESTPostAPIApplicationCommandsJSONBody;
   function: (interaction: ChatInputCommandInteraction) => void;
   name: string;
-  autoComplete?: (interaction: AutocompleteInteraction) => void | undefined;
+  autoComplete?: (interaction: AutocompleteInteraction) => void;
 }
