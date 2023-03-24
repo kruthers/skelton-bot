@@ -4,23 +4,23 @@ export default abstract class ModuleBase {
     /**
      * The name of the module
      */
-    readonly name: string;
+    abstract readonly name: string;
     /**
      * Any Required module the module has
      */
-    readonly depend_on?: string[];
+    abstract readonly depend_on?: string[];
     /**
      * The module's development version
      */
-    readonly version: string;
+    abstract readonly version: string;
     /**
      * Short description of what the module is / does
      */
-    readonly description: string;
+    abstract readonly description: string;
     /**
      * The author(s) of the module
      */
-    readonly author: string | string[];
+    abstract readonly author: string | string[];
     /**
      * Module's Commands
      */
@@ -47,7 +47,7 @@ export default abstract class ModuleBase {
      * Loads the module's resources into the main system
      * @param bot The discord bot client
      */
-    load?: (client: BotClient) => Promise<void> | void;
+    abstract load?: (client: BotClient) => Promise<void> | void;
     /**
      * UnLoads the module's resources into the main system
      * @param bot The discord bot client
