@@ -138,11 +138,9 @@ class InteractionManager {
     addCommand(command, moduleID) {
         logger_1.Logger.debug(`Adding command ${command.name} to command manager`);
         const cmdData = {
+            ...command,
             id: command.cmd_data.name,
             module: moduleID,
-            name: command.name,
-            callback: command.function,
-            autoComplete: command.autoComplete,
         };
         const app = this.client.application;
         let isOldCommand = false;

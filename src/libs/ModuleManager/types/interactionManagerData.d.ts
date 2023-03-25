@@ -1,11 +1,8 @@
-import { AutocompleteInteraction, ChatInputCommandInteraction } from "discord.js"
+import { BotCommand } from "./Module"
 
-type commandData = {
+type commandData = BotCommand & {
   id: string;
   module: string;
-  name: string;
-  callback: (interaction: ChatInputCommandInteraction) => void;
-  autoComplete?: (interaction: AutocompleteInteraction) => void;
 }
 
 type genericData<T> = {

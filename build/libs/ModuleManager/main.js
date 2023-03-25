@@ -28,6 +28,7 @@ class ModuleManager {
     client;
     config = new Config_1.default("modules", {
         response_deletion_time: 15000,
+        reloading: false,
         colours: exports.Colours,
         disabled: [],
     }, false);
@@ -215,8 +216,13 @@ class ModuleManager {
         //load new modules in
         logger_1.Logger.info("All modules fetched, loading modules");
         //load the default module
-        logger_1.Logger.debug("Loading default module first");
-        await this.load("default", new DefaultModule(this));
+        if (this.config.data.reloading) {
+            logger_1.Logger.warn("Reloading is enabled, Loading default module first");
+            await this.load("default", new DefaultModule(this));
+        }
+        else {
+            logger_1.Logger.info("Reloading is disabled, not loading default module");
+        }
         logger_1.Logger.debug("Loaded default, sorting appendices");
         //functions to check dependencies are valid and are not circular
         function removeModule(id) {
@@ -560,7 +566,7 @@ class DefaultModule {
                 name: "reload",
                 description: "Reload the bot's modules",
             },
-            function: (interaction) => {
+            callback: (interaction) => {
                 const reloaded = new discord_js_1.EmbedBuilder({
                     title: "Reloaded successfully!",
                     color: global.colours.success,
@@ -634,7 +640,7 @@ class DefaultModule {
                     },
                 ],
             },
-            function: (interaction) => {
+            callback: (interaction) => {
                 function getModuleFields(id, module) {
                     const fields = [];
                     if (Array.isArray(module.author)) {

@@ -38,6 +38,7 @@ export default class ModuleManager {
     "modules",
     {
       response_deletion_time: 15000,
+      reloading: false,
       colours: Colours,
       disabled: [],
     },
@@ -262,8 +263,12 @@ export default class ModuleManager {
     Logger.info("All modules fetched, loading modules")
 
     //load the default module
-    Logger.debug("Loading default module first")
-    await this.load("default", new DefaultModule(this))
+    if (this.config.data.reloading) {
+      Logger.warn("Reloading is enabled, Loading default module first")
+      await this.load("default", new DefaultModule(this))
+    } else {
+      Logger.info("Reloading is disabled, not loading default module")
+    }
 
     Logger.debug("Loaded default, sorting appendices")
 
@@ -636,7 +641,7 @@ class DefaultModule implements ModuleBase {
         name: "reload",
         description: "Reload the bot's modules",
       },
-      function: (interaction) => {
+      callback: (interaction) => {
         const reloaded = new EmbedBuilder({
           title: "Reloaded successfully!",
           color: global.colours.success,
@@ -709,7 +714,7 @@ class DefaultModule implements ModuleBase {
           },
         ],
       },
-      function: (interaction) => {
+      callback: (interaction) => {
         function getModuleFields(id: string, module: ModuleBase): EmbedField[] {
           const fields: EmbedField[] = []
           if (Array.isArray(module.author)) {

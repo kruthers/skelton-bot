@@ -56,7 +56,7 @@ export default abstract class ModuleBase {
 }
 export declare type BotCommand = {
     cmd_data: ApplicationCommandData | RESTPostAPIApplicationCommandsJSONBody;
-    function: (interaction: ChatInputCommandInteraction) => void;
+    callback: (interaction: ChatInputCommandInteraction) => void;
     name: string;
     autoComplete?: (interaction: AutocompleteInteraction) => void;
 };

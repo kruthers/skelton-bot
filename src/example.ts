@@ -38,7 +38,7 @@ class ExampleModule implements ModuleBase {
         name: "ping",
         description: "Will say pong",
       },
-      function: (interaction) => {
+      callback: (interaction) => {
         interaction.reply("Pong")
       },
     },

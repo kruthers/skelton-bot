@@ -2,6 +2,7 @@
 
 type moduleConfig = {
   response_deletion_time: number;
+  reloading: boolean;
   colours: {
     error: number;
     success: number;
