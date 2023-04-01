@@ -89,7 +89,7 @@ class InteractionManager {
             throw new Errors_1.UnknownCommandException();
         }
         //execute the command
-        await command.callback(interaction);
+        await command.data.callback(interaction);
     }
     /**
      * Process a command interaction
@@ -104,9 +104,9 @@ class InteractionManager {
             logger_1.Logger.warn(`Command ${commandName} not found`);
             this.refreshCommandCache(true);
         }
-        else if (command.autoComplete) {
+        else if (command.data.autoComplete) {
             //execute the command
-            command.autoComplete(interaction);
+            command.data.autoComplete(interaction);
         }
     }
     /**
@@ -138,7 +138,7 @@ class InteractionManager {
     addCommand(command, moduleID) {
         logger_1.Logger.debug(`Adding command ${command.name} to command manager`);
         const cmdData = {
-            ...command,
+            data: command,
             id: command.cmd_data.name,
             module: moduleID,
         };

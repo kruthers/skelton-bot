@@ -1,4 +1,4 @@
-import { ApplicationCommand, AutocompleteInteraction, ButtonInteraction, ChatInputCommandInteraction, Client, CommandInteraction, Interaction, ModalSubmitInteraction, SelectMenuInteraction } from "discord.js"
+import { ApplicationCommand, AutocompleteInteraction, ButtonInteraction, ChatInputCommandInteraction, Client, Interaction, ModalSubmitInteraction, SelectMenuInteraction } from "discord.js"
 import { BotCommand } from "./types/Module"
 import { Logger } from "../logger"
 import { getErrorEmbed, InteractionException, UnknownCommandException } from "./Errors"
@@ -100,7 +100,7 @@ export default class InteractionManager {
     }
 
     //execute the command
-    await command.callback(interaction)
+    await command.data.callback(interaction)
   }
 
   /**
@@ -116,9 +116,9 @@ export default class InteractionManager {
     if (!command) {
       Logger.warn(`Command ${commandName} not found`)
       this.refreshCommandCache(true)
-    } else if (command.autoComplete) {
+    } else if (command.data.autoComplete) {
       //execute the command
-      command.autoComplete(interaction)
+      command.data.autoComplete(interaction)
     }
   }
 
@@ -155,7 +155,7 @@ export default class InteractionManager {
   public addCommand(command: BotCommand, moduleID: string): void {
     Logger.debug(`Adding command ${command.name} to command manager`)
     const cmdData: commandData = {
-      ...command,
+      data: command,
       id: command.cmd_data.name,
       module: moduleID,
     }

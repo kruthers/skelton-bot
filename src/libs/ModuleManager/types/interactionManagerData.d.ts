@@ -1,8 +1,9 @@
 import { BotCommand } from "./Module"
 
-type commandData = BotCommand & {
+type commandData = {
   id: string;
   module: string;
+  data: BotCommand
 }
 
 type genericData<T> = {

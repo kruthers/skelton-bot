@@ -1,5 +1,6 @@
 import { GatewayIntentBits } from "discord-api-types/v10"
-import { BotCommand, Client, Logger, ModuleBase } from "./main"
+import { BotCommand, Client, Logger, ModuleBase } from "../main"
+import TestCommand from "./TestCommand"
 
 /**
  * Initialize variables
@@ -46,7 +47,7 @@ class ExampleModule implements ModuleBase {
 
   load(bot: Client): void {
     Logger.info("Hello wold, example module has been loaded")
-    bot.user?.setPresence({ activities: [ { name: "Test" } ], status: "online" })
+    this.commands.push(new TestCommand(bot))
   }
 
   unload(): void {

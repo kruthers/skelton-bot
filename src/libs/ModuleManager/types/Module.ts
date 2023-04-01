@@ -72,9 +72,9 @@ export default abstract class ModuleBase {
   unload?: (client: BotClient) => Promise<void> | void
 }
 
-export type BotCommand = {
+export interface BotCommand {
   cmd_data: ApplicationCommandData | RESTPostAPIApplicationCommandsJSONBody;
-  callback: (interaction: ChatInputCommandInteraction) => void;
+  callback: (interaction: ChatInputCommandInteraction) => Promise<void> | void;
   name: string;
   autoComplete?: (interaction: AutocompleteInteraction) => void;
 }
