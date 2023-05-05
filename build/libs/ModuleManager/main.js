@@ -516,7 +516,7 @@ class ModuleManager {
             try {
                 if (module.unload) {
                     logger_1.Logger.debug(`Unloading module ${module.name} from ${id}`);
-                    module.unload(this.client);
+                    await module.unload(this.client);
                 }
             }
             catch (err) {

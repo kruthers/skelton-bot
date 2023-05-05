@@ -41,11 +41,11 @@ class ExampleModule {
             },
         },
     ];
-    load(bot) {
+    async load(bot) {
         main_1.Logger.info("Hello wold, example module has been loaded");
         this.commands.push(new TestCommand_1.default(bot));
     }
-    unload() {
+    async unload() {
         main_1.Logger.info("Example module has been unloaded");
     }
 }

@@ -47,12 +47,12 @@ export default abstract class ModuleBase {
      * Loads the module's resources into the main system
      * @param bot The discord bot client
      */
-    abstract load?: (client: BotClient) => Promise<void> | void;
+    abstract load?: (client: BotClient) => Promise<void>;
     /**
      * UnLoads the module's resources into the main system
      * @param bot The discord bot client
      */
-    unload?: (client: BotClient) => Promise<void> | void;
+    unload?: (client: BotClient) => Promise<void>;
 }
 export interface BotCommand {
     cmd_data: ApplicationCommandData | RESTPostAPIApplicationCommandsJSONBody;

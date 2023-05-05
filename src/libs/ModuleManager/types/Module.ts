@@ -62,14 +62,14 @@ export default abstract class ModuleBase {
    * @param bot The discord bot client
    */
   // load(bot: Client): void {}
-  abstract load?: (client: BotClient) => Promise<void> | void
+  abstract load?: (client: BotClient) => Promise<void>
 
   /**
    * UnLoads the module's resources into the main system
    * @param bot The discord bot client
    */
   // unload(bot: Client): void {}
-  unload?: (client: BotClient) => Promise<void> | void
+  unload?: (client: BotClient) => Promise<void>
 }
 
 export interface BotCommand {

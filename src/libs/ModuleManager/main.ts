@@ -587,7 +587,7 @@ export default class ModuleManager {
       try {
         if (module.unload) {
           Logger.debug(`Unloading module ${module.name} from ${id}`)
-          module.unload(this.client)
+          await module.unload(this.client)
         }
       } catch (err) {
         Logger.severe(`Failed run module unload ${id}: ${err}`)

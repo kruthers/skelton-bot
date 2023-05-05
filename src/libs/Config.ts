@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, writeFile } from "fs"
+import { existsSync, mkdirSync, readFileSync, writeFile } from "fs"
 import { join } from "path"
 import { Logger } from "./logger"
 
@@ -56,7 +56,8 @@ export default class Config<T> {
 
     if (existsSync(this.getPath())) {
       try {
-        this.data = require(this.getPath())
+        const fileData = readFileSync(this.getPath(), "utf8")
+        this.data = JSON.parse(fileData)
       } catch (error) {
         Logger.warn(`Failed to load file ${this.name}.json. ${error}`)
         this.data = this.default

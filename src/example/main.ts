@@ -45,12 +45,12 @@ class ExampleModule implements ModuleBase {
     },
   ]
 
-  load(bot: Client): void {
+  async load(bot: Client) {
     Logger.info("Hello wold, example module has been loaded")
     this.commands.push(new TestCommand(bot))
   }
 
-  unload(): void {
+  async unload() {
     Logger.info("Example module has been unloaded")
   }
 

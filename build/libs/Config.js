@@ -52,7 +52,8 @@ class Config {
         }
         if ((0, fs_1.existsSync)(this.getPath())) {
             try {
-                this.data = require(this.getPath());
+                const fileData = (0, fs_1.readFileSync)(this.getPath(), "utf8");
+                this.data = JSON.parse(fileData);
             }
             catch (error) {
                 logger_1.Logger.warn(`Failed to load file ${this.name}.json. ${error}`);
