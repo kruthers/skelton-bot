@@ -1,6 +1,6 @@
 {
   "name": "skelton-bot",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "A simple bot library with advanced capabilities",
   "main": "./build/main.js",
   "types": "./build/main.d.ts",

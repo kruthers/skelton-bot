@@ -30,7 +30,7 @@ export default class Config<T> {
    * @param defaultConfig The default content used to create the rile
    * @param autoLoad Automatically save/ load the file once created
    */
-  constructor(name: string, defaultConfig: T, autoLoad = true) {
+  constructor(name: string, defaultConfig: T, autoLoad = false) {
     //save values
     this.name = name
     this.default = defaultConfig
@@ -67,9 +67,10 @@ export default class Config<T> {
         }
       }
     } else {
+      Logger.warn(`Unable to find ${this.name}.json defaulting to defaults and creating a new file`)
       this.data = this.default
+      await this.save(exitOnFail)
     }
-    await this.save(exitOnFail)
   }
 
   /**
@@ -80,8 +81,7 @@ export default class Config<T> {
     return new Promise((resolve, reject) => {
       writeFile(this.getPath(), JSON.stringify(this.data, null, 4), (err) => {
         if (err) {
-          Logger.warn(`Failed to create ${this.name}.json: ${err}`)
-          Logger.severe(`Failed to create config file ${this.name}.json`)
+          Logger.severe(`Failed to write to ${this.name}.json: ${err}`)
           if (exitOnFail) {
             process.exit(1)
           }
